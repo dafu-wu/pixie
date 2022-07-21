@@ -30,47 +30,47 @@ patchesStrategicMerge:
 - proxy_envoy.yaml
 images:
 - name: gcr.io/pixie-oss/pixie-dev/cloud/api_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/api_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.api_server_image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/artifact_tracker_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/artifact_tracker_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.artifact_tracker_server_image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/auth_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/auth_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.auth-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/config_manager_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/config_manager_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.config-manager-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/proxy_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/proxy_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.proxy-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/indexer_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/indexer_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.indexer-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/metrics_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/metrics_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.metrics-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/plugin_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/plugin_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.plugin-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/profile_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/profile_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.profile-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/project_manager_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/project_manager_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.project-manager-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/scriptmgr_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/scriptmgr_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.scriptmgr-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/cron_script_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/cron_script_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.cron-script-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/vzconn_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/vzconn_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.vzconn-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/vzmgr_server_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/vzmgr_server_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.vzmgr-server-image
   newTag: latest
 - name: gcr.io/pixie-oss/pixie-dev/cloud/job/create_admin_job_image
-  newName: gcr.io/pixie-oss/pixie-prod/cloud/job/create_admin_job_image
+  newName: wuchengyi/pixie-oss.pixie-prod.cloud.job.create-admin-job-image
   newTag: latest
