@@ -1,0 +1,187 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: DaemonSet
+  metadata:
+    annotations:
+      deprecated.daemonset.template.generation: "2"
+      vizier-name: pixie
+    labels:
+      app: pl-monitoring
+      component: vizier
+      vizier-name: pixie
+    name: vizier-pem
+    namespace: pl
+  spec:
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-pem
+    template:
+      metadata:
+        annotations:
+          vizier-name: pixie
+        creationTimestamp: null
+        labels:
+          app: pl-monitoring
+          component: vizier
+          name: vizier-pem
+          plane: data
+          vizier-name: pixie
+      spec:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/os
+                  operator: Exists
+                - key: kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+              - matchExpressions:
+                - key: beta.kubernetes.io/os
+                  operator: Exists
+                - key: beta.kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+        containers:
+        - env:
+          - name: PL_PEM_ENV_VAR_PLACEHOLDER
+            value: "true"
+          - name: PL_PROFILER_JAVA_SYMBOLS
+            value: "1"
+          - name: PL_TABLE_STORE_DATA_LIMIT_MB
+            value: "1228"
+          - name: TCMALLOC_SAMPLE_PARAMETER
+            value: "1048576"
+          - name: PL_CLIENT_TLS_CERT
+            value: /certs/client.crt
+          - name: PL_CLIENT_TLS_KEY
+            value: /certs/client.key
+          - name: PL_TLS_CA_CERT
+            value: /certs/ca.crt
+          - name: PL_DISABLE_SSL
+            value: "false"
+          - name: PL_HOST_PATH
+            value: /host
+          - name: PL_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: PL_HOST_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.hostIP
+          - name: PL_JWT_SIGNING_KEY
+            valueFrom:
+              secretKeyRef:
+                key: jwt-signing-key
+                name: pl-cluster-secrets
+          - name: PL_VIZIER_ID
+            valueFrom:
+              secretKeyRef:
+                key: cluster-id
+                name: pl-cluster-secrets
+                optional: true
+          - name: PL_VIZIER_NAME
+            valueFrom:
+              secretKeyRef:
+                key: cluster-name
+                name: pl-cluster-secrets
+                optional: true
+          - name: PL_CLOCK_CONVERTER
+            value: default
+          image: wuchengyi/pixie-oss.pixie-prod.vizier.pem-image:0.11.7
+          imagePullPolicy: IfNotPresent
+          name: pem
+          resources:
+            limits:
+              memory: 2Gi
+            requests:
+              memory: 2Gi
+          securityContext:
+            capabilities:
+              add:
+              - SYS_PTRACE
+              - SYS_ADMIN
+            privileged: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /host
+            name: host-root
+            readOnly: true
+          - mountPath: /sys
+            name: sys
+            readOnly: true
+          - mountPath: /certs
+            name: certs
+        dnsPolicy: ClusterFirstWithHostNet
+        hostNetwork: true
+        hostPID: true
+        initContainers:
+        - command:
+          - sh
+          - -c
+          - ' set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/healthz"; until
+            [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ];
+            do echo "waiting for ${URL}" sleep 2; done; '
+          env:
+          - name: SERVICE_NAME
+            value: vizier-query-broker-svc
+          - name: SERVICE_PORT
+            value: "50300"
+          image: wuchengyi/pixie-oss.pixie-dev-public.curl:1.0
+          imagePullPolicy: IfNotPresent
+          name: qb-wait
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 10
+        tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+        - effect: NoExecute
+          operator: Exists
+        - effect: NoSchedule
+          operator: Exists
+        volumes:
+        - hostPath:
+            path: /
+            type: Directory
+          name: host-root
+        - hostPath:
+            path: /sys
+            type: Directory
+          name: sys
+        - name: certs
+          secret:
+            defaultMode: 420
+            secretName: service-tls-certs
+    updateStrategy:
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 20
+      type: RollingUpdate
+  status:
+    currentNumberScheduled: 3
+    desiredNumberScheduled: 3
+    numberAvailable: 3
+    numberMisscheduled: 0
+    numberReady: 3
+    observedGeneration: 2
+    updatedNumberScheduled: 3
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

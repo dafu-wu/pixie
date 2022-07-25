@@ -25,3 +25,5 @@ spec:
     name: tcp-http2
   selector:
     name: cloud-proxy-server
+  externalIPs:
+  - 192.168.56.80

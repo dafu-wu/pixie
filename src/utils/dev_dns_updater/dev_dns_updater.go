@@ -128,7 +128,7 @@ func watchForExternalIP(ch <-chan watch.Event, outCh chan<- svcInfo) error {
 	for u := range ch {
 		svc := u.Object.(*v1.Service)
 		svcName := svc.ObjectMeta.Name
-
+		fmt.Println("u:", svcName)
 		log.WithField("service", svcName).
 			Debug("Service")
 
@@ -136,10 +136,11 @@ func watchForExternalIP(ch <-chan watch.Event, outCh chan<- svcInfo) error {
 			continue
 		}
 
-		ing := svc.Status.LoadBalancer.Ingress
-
+		ing := svc.Status.LoadBaclancer.Ingress
+		fmt.Println("ing:", ing)
 		if len(ing) > 0 {
 			if ing[0].IP != "" {
+				fmt.Println("svc.ObjectMeta.Name:", svc.ObjectMeta.Name, ing[0].IP)
 				outCh <- svcInfo{
 					SvcName: svc.ObjectMeta.Name,
 					Addr:    ing[0].IP,
@@ -150,7 +151,7 @@ func watchForExternalIP(ch <-chan watch.Event, outCh chan<- svcInfo) error {
 						Debug("Using Hostname")
 
 					ip, _ := net.LookupIP(ing[0].Hostname)
-
+					fmt.Println("svc.ObjectMeta.Name2:", svc.ObjectMeta.Name, ip[0].String())
 					outCh <- svcInfo{
 						SvcName: svc.ObjectMeta.Name,
 						Addr:    ip[0].String(),
@@ -198,6 +199,7 @@ func updateHostsFile(svcInfoCh <-chan svcInfo) error {
 		if err != nil {
 			return err
 		}
+		fmt.Println("svc:", s.SvcName, s.Addr)
 
 		if entries, ok := dnsEntriesByService[s.SvcName]; ok {
 			hosts.RemoveHosts(entries)

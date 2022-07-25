@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: stan-pv-volume-1
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/stan/1"
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: stan-pv-volume-2
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/stan"
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: stan-pv-volume-3
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/stan/3"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-pv-volume-1
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/es/1"
+
+--- 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-pv-volume-2
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/es/2"
+
+--- 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-pv-volume-3
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/es/3"
+
+--- 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-pv-volume-4
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/es/4"
+
+--- 
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: es-pv-volume-5
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/es/5"

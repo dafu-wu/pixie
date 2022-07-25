@@ -16,7 +16,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: gcr.io/google-samples/microservices-demo/emailservice:v0.3.6
+        image: wuchengyi/google-samples.microservices-demo.emailservice:v0.3.6
         ports:
         - containerPort: 8080
         env:
@@ -71,7 +71,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: server
-          image: gcr.io/google-samples/microservices-demo/checkoutservice:v0.3.6
+          image: wuchengyi/google-samples.microservices-demo.checkoutservice:v0.3.6
           ports:
           - containerPort: 5050
           readinessProbe:
@@ -141,7 +141,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: gcr.io/google-samples/microservices-demo/recommendationservice:v0.3.6
+        image: wuchengyi/google-samples.microservices-demo.recommendationservice:v0.3.6
         ports:
         - containerPort: 8080
         readinessProbe:
@@ -202,7 +202,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: server
-          image: gcr.io/google-samples/microservices-demo/frontend:v0.3.6
+          image: wuchengyi/google-samples.microservices-demo.frontend:v0.3.6
           ports:
           - containerPort: 8080
           readinessProbe:
@@ -301,7 +301,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: gcr.io/google-samples/microservices-demo/paymentservice:v0.3.6
+        image: wuchengyi/google-samples.microservices-demo.paymentservice:v0.3.6
         ports:
         - containerPort: 50051
         env:
@@ -357,7 +357,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.3.6
+        image: wuchengyi/google-samples.microservices-demo.productcatalogservice:v0.3.6
         ports:
         - containerPort: 3550
         env:
@@ -415,7 +415,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: gcr.io/google-samples/microservices-demo/cartservice:v0.3.6
+        image: wuchengyi/google-samples.microservices-demo.cartservice:v0.3.6
         ports:
         - containerPort: 7070
         env:
@@ -423,7 +423,7 @@ spec:
           value: "redis-cart:6379"
         resources:
           requests:
-            cpu: 200m
+            cpu: 100m
             memory: 64Mi
           limits:
             cpu: 300m
@@ -488,7 +488,7 @@ spec:
           value: "frontend:80"
       containers:
       - name: main
-        image: gcr.io/google-samples/microservices-demo/loadgenerator:v0.3.6
+        image: wuchengyi/google-samples.microservices-demo.loadgenerator:v0.3.6
         env:
         - name: FRONTEND_ADDR
           value: "frontend:80"
@@ -496,7 +496,7 @@ spec:
           value: "10"
         resources:
           requests:
-            cpu: 300m
+            cpu: 200m
             memory: 256Mi
           limits:
             cpu: 500m
@@ -519,7 +519,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: gcr.io/google-samples/microservices-demo/currencyservice:v0.3.6
+        image: wuchengyi/google-samples.microservices-demo.currencyservice:v0.3.6
         ports:
         - name: grpc
           containerPort: 7000
@@ -575,7 +575,7 @@ spec:
       serviceAccountName: default
       containers:
       - name: server
-        image: gcr.io/google-samples/microservices-demo/shippingservice:v0.3.6
+        image: wuchengyi/google-samples.microservices-demo.shippingservice:v0.3.6
         ports:
         - containerPort: 50051
         env:
@@ -651,7 +651,7 @@ spec:
             memory: 256Mi
             cpu: 125m
           requests:
-            cpu: 70m
+            cpu: 140m
             memory: 200Mi
       volumes:
       - name: redis-data
@@ -687,7 +687,7 @@ spec:
       terminationGracePeriodSeconds: 5
       containers:
       - name: server
-        image: gcr.io/pixie-prod/demos/microservices-demo-app/adservice:1.0
+        image: wuchengyi/pixie-prod.demos.microservices-demo-app.adservice:1.0
         ports:
         - containerPort: 9555
         env:
@@ -701,8 +701,8 @@ spec:
         #   value: "jaeger-collector:14268"
         resources:
           requests:
-            cpu: 200m
-            memory: 180Mi
+            cpu: 100m
+            memory: 100Mi
           limits:
             cpu: 300m
             memory: 300Mi

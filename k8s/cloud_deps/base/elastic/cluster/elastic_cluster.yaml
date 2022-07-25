@@ -59,7 +59,7 @@ spec:
               memory: 4Gi
             requests:
               cpu: 0.5
-              memory: 4Gi
+              memory: 2Gi
         initContainers:
         - name: install-plugins
           command:

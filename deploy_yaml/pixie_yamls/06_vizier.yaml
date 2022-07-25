@@ -1,0 +1,15 @@
+apiVersion: px.dev/v1alpha1
+kind: Vizier
+metadata:
+  name: pixie
+  namespace: pl
+spec:
+  version: 0.11.1
+  deployKey: px-dep-fb0769c3-ea13-4762-a012-f8cf5ba852f1
+  cloudAddr: dev.withpixie.dev:443
+  disableAutoUpdate: false
+  useEtcdOperator: false
+  clusterName: kubernetes-admin@kubernetes
+  pemMemoryLimit: 1Gi
+  dataAccess: Full
+  dataCollectorParams:

@@ -1,0 +1,748 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "2"
+      vizier-name: pixie
+    labels:
+      app: pl-monitoring
+      component: vizier
+      vizier-name: pixie
+    name: kelvin
+    namespace: pl
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: kelvin
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          vizier-name: pixie
+        creationTimestamp: null
+        labels:
+          app: pl-monitoring
+          component: vizier
+          name: kelvin
+          plane: data
+          vizier-name: pixie
+      spec:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/os
+                  operator: Exists
+                - key: kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+              - matchExpressions:
+                - key: beta.kubernetes.io/os
+                  operator: Exists
+                - key: beta.kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+        containers:
+        - env:
+          - name: PL_HOST_PATH
+            value: /host
+          - name: PL_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: PL_CLUSTER_ID
+            valueFrom:
+              secretKeyRef:
+                key: cluster-id
+                name: pl-cluster-secrets
+          - name: PL_SENTRY_DSN
+            valueFrom:
+              secretKeyRef:
+                key: sentry-dsn
+                name: pl-cluster-secrets
+                optional: true
+          - name: PL_POD_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+          - name: PL_HOST_IP
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.hostIP
+          - name: PL_JWT_SIGNING_KEY
+            valueFrom:
+              secretKeyRef:
+                key: jwt-signing-key
+                name: pl-cluster-secrets
+          - name: PL_VIZIER_ID
+            valueFrom:
+              secretKeyRef:
+                key: cluster-id
+                name: pl-cluster-secrets
+                optional: true
+          - name: PL_VIZIER_NAME
+            valueFrom:
+              secretKeyRef:
+                key: cluster-name
+                name: pl-cluster-secrets
+                optional: true
+          - name: PL_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: TCMALLOC_SAMPLE_PARAMETER
+            value: "1048576"
+          envFrom:
+          - configMapRef:
+              name: pl-tls-config
+          image: wuchengyi/pixie-oss.pixie-prod.vizier.kelvin-image:0.11.7
+          imagePullPolicy: IfNotPresent
+          name: app
+          ports:
+          - containerPort: 59300
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /certs
+            name: certs
+          - mountPath: /sys
+            name: sys
+            readOnly: true
+        dnsPolicy: ClusterFirst
+        initContainers:
+        - command:
+          - sh
+          - -c
+          - 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/readyz"; until [
+            $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ];
+            do echo "waiting for ${URL}" sleep 2; done; '
+          env:
+          - name: SERVICE_NAME
+            value: vizier-cloud-connector-svc
+          - name: SERVICE_PORT
+            value: "50800"
+          image: wuchengyi/pixie-oss.pixie-dev-public.curl:1.0
+          imagePullPolicy: IfNotPresent
+          name: cc-wait
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - command:
+          - sh
+          - -c
+          - 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/healthz"; until
+            [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ];
+            do echo "waiting for ${URL}" sleep 2; done; '
+          env:
+          - name: SERVICE_NAME
+            value: vizier-query-broker-svc
+          - name: SERVICE_PORT
+            value: "50300"
+          image: wuchengyi/pixie-oss.pixie-dev-public.curl:1.0
+          imagePullPolicy: IfNotPresent
+          name: qb-wait
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: certs
+          secret:
+            defaultMode: 420
+            secretName: service-tls-certs
+        - hostPath:
+            path: /sys
+            type: Directory
+          name: sys
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2022-07-25T03:15:03Z"
+      lastUpdateTime: "2022-07-25T03:15:03Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2022-07-25T03:15:03Z"
+      lastUpdateTime: "2022-07-25T03:15:03Z"
+      message: ReplicaSet "kelvin-7bfcd8bb48" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "2"
+      vizier-name: pixie
+    labels:
+      app: pl-monitoring
+      component: vizier
+      vizier-bootstrap: "true"
+      vizier-name: pixie
+    name: vizier-cloud-connector
+    namespace: pl
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-cloud-connector
+        vizier-bootstrap: "true"
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          vizier-name: pixie
+        creationTimestamp: null
+        labels:
+          app: pl-monitoring
+          component: vizier
+          name: vizier-cloud-connector
+          plane: control
+          vizier-bootstrap: "true"
+          vizier-name: pixie
+      spec:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/os
+                  operator: Exists
+                - key: kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+              - matchExpressions:
+                - key: beta.kubernetes.io/os
+                  operator: Exists
+                - key: beta.kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+        containers:
+        - env:
+          - name: PL_JWT_SIGNING_KEY
+            valueFrom:
+              secretKeyRef:
+                key: jwt-signing-key
+                name: pl-cluster-secrets
+          - name: PL_CLUSTER_ID
+            valueFrom:
+              secretKeyRef:
+                key: cluster-id
+                name: pl-cluster-secrets
+                optional: true
+          - name: PL_VIZIER_NAME
+            valueFrom:
+              secretKeyRef:
+                key: cluster-name
+                name: pl-cluster-secrets
+                optional: true
+          - name: PL_DEPLOY_KEY
+            valueFrom:
+              secretKeyRef:
+                key: deploy-key
+                name: pl-deploy-secrets
+                optional: true
+          - name: PL_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: PL_MAX_EXPECTED_CLOCK_SKEW
+            value: "2000"
+          - name: PL_RENEW_PERIOD
+            value: "7500"
+          envFrom:
+          - configMapRef:
+              name: pl-cloud-config
+          - configMapRef:
+              name: pl-cloud-connector-tls-config
+          - configMapRef:
+              name: pl-cluster-config
+              optional: true
+          image: wuchengyi/pixie-oss.pixie-prod.vizier.cloud-connector-server-image:0.11.7
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 50800
+              scheme: HTTPS
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: app
+          ports:
+          - containerPort: 50800
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /certs
+            name: certs
+        dnsPolicy: ClusterFirst
+        initContainers:
+        - command:
+          - sh
+          - -c
+          - set -xe; URL="${PROTOCOL}://${SERVICE_NAME}:${SERVICE_PORT}${HEALTH_PATH}";
+            until [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq
+            200 ]; do echo "waiting for ${URL}"; sleep 2; done;
+          env:
+          - name: SERVICE_NAME
+            value: pl-nats-mgmt
+          - name: SERVICE_PORT
+            value: "8222"
+          - name: HEALTH_PATH
+          - name: PROTOCOL
+            value: http
+          image: wuchengyi/pixie-oss.pixie-dev-public.curl:1.0
+          imagePullPolicy: IfNotPresent
+          name: nats-wait
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: cloud-conn-service-account
+        serviceAccountName: cloud-conn-service-account
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: certs
+          secret:
+            defaultMode: 420
+            secretName: service-tls-certs
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2022-07-25T03:05:49Z"
+      lastUpdateTime: "2022-07-25T03:05:49Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2022-07-25T02:42:46Z"
+      lastUpdateTime: "2022-07-25T03:05:49Z"
+      message: ReplicaSet "vizier-cloud-connector-55d96586b8" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "2"
+      vizier-name: pixie
+    labels:
+      app: pl-monitoring
+      component: vizier
+      vizier-name: pixie
+    name: vizier-metadata
+    namespace: pl
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-metadata
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          px.dev/metrics_port: "50400"
+          px.dev/metrics_scrape: "true"
+          vizier-name: pixie
+        creationTimestamp: null
+        labels:
+          app: pl-monitoring
+          component: vizier
+          name: vizier-metadata
+          plane: control
+          vizier-name: pixie
+      spec:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/os
+                  operator: Exists
+                - key: kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+              - matchExpressions:
+                - key: beta.kubernetes.io/os
+                  operator: Exists
+                - key: beta.kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+        containers:
+        - env:
+          - name: PL_JWT_SIGNING_KEY
+            valueFrom:
+              secretKeyRef:
+                key: jwt-signing-key
+                name: pl-cluster-secrets
+          - name: PL_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: PL_MAX_EXPECTED_CLOCK_SKEW
+            value: "2000"
+          - name: PL_RENEW_PERIOD
+            value: "7500"
+          envFrom:
+          - configMapRef:
+              name: pl-tls-config
+          - configMapRef:
+              name: pl-cluster-config
+              optional: true
+          image: wuchengyi/pixie-oss.pixie-prod.vizier.metadata-server-image:0.11.7
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 50400
+              scheme: HTTPS
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: app
+          readinessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /healthz
+              port: 50400
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /certs
+            name: certs
+        dnsPolicy: ClusterFirst
+        initContainers:
+        - command:
+          - sh
+          - -c
+          - set -xe; URL="${PROTOCOL}://${SERVICE_NAME}:${SERVICE_PORT}${HEALTH_PATH}";
+            until [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq
+            200 ]; do echo "waiting for ${URL}"; sleep 2; done;
+          env:
+          - name: SERVICE_NAME
+            value: pl-nats-mgmt
+          - name: SERVICE_PORT
+            value: "8222"
+          - name: HEALTH_PATH
+          - name: PROTOCOL
+            value: http
+          image: wuchengyi/pixie-oss.pixie-dev-public.curl:1.0
+          imagePullPolicy: IfNotPresent
+          name: nats-wait
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - command:
+          - sh
+          - -c
+          - set -xe; ETCD_PATH="${PL_MD_ETCD_SERVER}"; if [ ! ${ETCD_PATH} ]; then
+            ETCD_PATH="${DEFAULT_ETCD_PATH}"; fi; URL="${ETCD_PATH}${HEALTH_PATH}";
+            until [ $(curl --cacert /certs/ca.crt --key /certs/client.key --cert /certs/client.crt
+            -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ]; do echo
+            "waiting for ${URL}"; sleep 2; done;
+          env:
+          - name: HEALTH_PATH
+            value: /health
+          - name: DEFAULT_ETCD_PATH
+            value: https://pl-etcd-client.pl.svc:2379
+          envFrom:
+          - configMapRef:
+              name: pl-cluster-config
+              optional: true
+          image: wuchengyi/pixie-oss.pixie-dev-public.curl:1.0
+          imagePullPolicy: IfNotPresent
+          name: etcd-wait
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /certs
+            name: certs
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: metadata-service-account
+        serviceAccountName: metadata-service-account
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: certs
+          secret:
+            defaultMode: 420
+            secretName: service-tls-certs
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2022-07-25T03:09:22Z"
+      lastUpdateTime: "2022-07-25T03:09:22Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2022-07-25T03:09:22Z"
+      lastUpdateTime: "2022-07-25T03:09:22Z"
+      message: ReplicaSet "vizier-metadata-786db455f9" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "2"
+      vizier-name: pixie
+    labels:
+      app: pl-monitoring
+      component: vizier
+      vizier-name: pixie
+    name: vizier-query-broker
+    namespace: pl
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: pl-monitoring
+        component: vizier
+        name: vizier-query-broker
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          px.dev/metrics_port: "50300"
+          px.dev/metrics_scrape: "true"
+          vizier-name: pixie
+        creationTimestamp: null
+        labels:
+          app: pl-monitoring
+          component: vizier
+          name: vizier-query-broker
+          plane: control
+          vizier-name: pixie
+      spec:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/os
+                  operator: Exists
+                - key: kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+              - matchExpressions:
+                - key: beta.kubernetes.io/os
+                  operator: Exists
+                - key: beta.kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+        containers:
+        - env:
+          - name: PL_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: PL_CLUSTER_ID
+            valueFrom:
+              secretKeyRef:
+                key: cluster-id
+                name: pl-cluster-secrets
+          - name: PL_SENTRY_DSN
+            valueFrom:
+              secretKeyRef:
+                key: sentry-dsn
+                name: pl-cluster-secrets
+                optional: true
+          - name: PL_JWT_SIGNING_KEY
+            valueFrom:
+              secretKeyRef:
+                key: jwt-signing-key
+                name: pl-cluster-secrets
+          - name: PL_POD_IP_ADDRESS
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: status.podIP
+          - name: PL_POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: PL_DATA_ACCESS
+            value: Full
+          envFrom:
+          - configMapRef:
+              name: pl-tls-config
+          image: wuchengyi/pixie-oss.pixie-prod.vizier.query-broker-server-image:0.11.7
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 50300
+              scheme: HTTPS
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          name: app
+          ports:
+          - containerPort: 50300
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /certs
+            name: certs
+        dnsPolicy: ClusterFirst
+        initContainers:
+        - command:
+          - sh
+          - -c
+          - 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/readyz"; until [
+            $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ];
+            do echo "waiting for ${URL}" sleep 2; done; '
+          env:
+          - name: SERVICE_NAME
+            value: vizier-cloud-connector-svc
+          - name: SERVICE_PORT
+            value: "50800"
+          image: wuchengyi/pixie-oss.pixie-dev-public.curl:1.0
+          imagePullPolicy: IfNotPresent
+          name: cc-wait
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        - command:
+          - sh
+          - -c
+          - 'set -x; URL="https://${SERVICE_NAME}:${SERVICE_PORT}/healthz"; until
+            [ $(curl -m 0.5 -s -o /dev/null -w "%{http_code}" -k ${URL}) -eq 200 ];
+            do echo "waiting for ${URL}" sleep 2; done; '
+          env:
+          - name: SERVICE_NAME
+            value: vizier-metadata-svc
+          - name: SERVICE_PORT
+            value: "50400"
+          image: wuchengyi/pixie-oss.pixie-dev-public.curl:1.0
+          imagePullPolicy: IfNotPresent
+          name: mds-wait
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: certs
+          secret:
+            defaultMode: 420
+            secretName: service-tls-certs
+        - configMap:
+            defaultMode: 420
+            name: proxy-envoy-config
+          name: envoy-yaml
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2022-07-25T03:14:54Z"
+      lastUpdateTime: "2022-07-25T03:14:54Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2022-07-25T02:42:47Z"
+      lastUpdateTime: "2022-07-25T03:14:54Z"
+      message: ReplicaSet "vizier-query-broker-5b8fc6d9d4" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 3
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

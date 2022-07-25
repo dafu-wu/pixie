@@ -15,3 +15,5 @@ spec:
     name: tcp-http2
   selector:
     name: vzconn-server
+  externalIPs:
+  - 192.168.56.80

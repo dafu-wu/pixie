@@ -1,0 +1,101 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+    labels:
+      olm.deployment-spec-hash: 5bb6fd7677
+      olm.owner: pixie-operator.v0.0.30
+      olm.owner.kind: ClusterServiceVersion
+      olm.owner.namespace: px-operator
+      operators.coreos.com/pixie-operator.px-operator: ""
+    name: vizier-operator
+    namespace: px-operator
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 1
+    selector:
+      matchLabels:
+        app: pixie-operator
+        component: pixie-operator
+        name: vizier-operator
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          olm.operatorGroup: global-operators
+          olm.operatorNamespace: px-operator
+          olm.targetNamespaces: ""
+          operatorframework.io/properties: '{"properties":[{"type":"olm.gvk","value":{"group":"px.dev","kind":"Vizier","version":"v1alpha1"}},{"type":"olm.package","value":{"packageName":"pixie-operator","version":"0.0.30"}}]}'
+        creationTimestamp: null
+        labels:
+          app: pixie-operator
+          component: pixie-operator
+          name: vizier-operator
+          plane: control
+      spec:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/os
+                  operator: Exists
+                - key: kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+              - matchExpressions:
+                - key: beta.kubernetes.io/os
+                  operator: Exists
+                - key: beta.kubernetes.io/os
+                  operator: In
+                  values:
+                  - linux
+        containers:
+        - env:
+          - name: OPERATOR_CONDITION_NAME
+            value: pixie-operator.v0.0.30
+          image: wuchengyi/pixie-oss.pixie-prod.operator.operator-image:0.0.30
+          imagePullPolicy: IfNotPresent
+          name: app
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        serviceAccount: pixie-operator-service-account
+        serviceAccountName: pixie-operator-service-account
+        terminationGracePeriodSeconds: 30
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2022-07-23T04:01:35Z"
+      lastUpdateTime: "2022-07-23T04:01:37Z"
+      message: ReplicaSet "vizier-operator-6dfd7fdbc7" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2022-07-25T02:31:20Z"
+      lastUpdateTime: "2022-07-25T02:31:20Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
