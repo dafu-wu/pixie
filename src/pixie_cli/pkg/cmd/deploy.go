@@ -26,6 +26,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"encoding/json"
 
 	"github.com/fatih/color"
 	"github.com/gofrs/uuid"
@@ -528,6 +529,30 @@ func deploy(cloudConn *grpc.ClientConn, clientset *kubernetes.Clientset, vzClien
 		}
 		return err
 	})
+	fmt.Println("yamlMap:", yamlMap)
+
+	jsonData, err1 := json.Marshal(yamlMap)
+
+	if err1 != nil {
+			panic(err1)
+	}
+
+	// sanity check
+	fmt.Println(string(jsonData))
+
+	// write to JSON file
+
+	jsonFile, err1 := os.Create("./Person.yaml")
+
+	if err1 != nil {
+			panic(err1)
+	}
+	defer jsonFile.Close()
+
+	jsonFile.Write(jsonData)
+	jsonFile.Close()
+	fmt.Println("JSON data written to ", jsonFile.Name())
+
 
 	vzCRDJob := newTaskWrapper("Installing Vizier CRD", func() error {
 		// Delete existing CRD, if any.

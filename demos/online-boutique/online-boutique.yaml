@@ -276,7 +276,7 @@ kind: Service
 metadata:
   name: frontend-external
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: frontend
   ports:
@@ -651,7 +651,7 @@ spec:
             memory: 256Mi
             cpu: 125m
           requests:
-            cpu: 140m
+            cpu: 70m
             memory: 200Mi
       volumes:
       - name: redis-data

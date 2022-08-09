@@ -4,10 +4,10 @@ kind: Service
 metadata:
   name: vzconn-service
   annotations:
-    cloud.google.com/load-balancer-type: internal
+    # cloud.google.com/load-balancer-type: internal
     cloud.google.com/app-protocols: '{"tcp-http2":"HTTP2"}'
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
   - port: 51600
     protocol: TCP
@@ -16,4 +16,4 @@ spec:
   selector:
     name: vzconn-server
   externalIPs:
-  - 192.168.56.80
+  - 172.16.62.223
